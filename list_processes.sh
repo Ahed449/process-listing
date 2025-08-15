@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# سكريبت لعرض كل العمليات لجميع المستخدمين، بما فيها اللي بدون TTY،
+# في تنسيق واضح، وبشكل هرمي يوضح علاقات Parent/Child.
+
+if ps -eo pid --forest >/dev/null 2>&1; then
+  ps -eo user:18,pid,ppid,%cpu,%mem,tty,start,time,cmd --forest
+  exit 0
+fi
+
+if command -v pstree >/dev/null 2>&1; then
+  echo "Note: ps --forest not available; showing pstree first, then a flat ps list." >&2
+  pstree -apu
+  echo
+  ps -eo user:18,pid,ppid,%cpu,%mem,tty,start,time,cmd
+  exit 0
+fi
+
+echo "Neither 'ps --forest' nor 'pstree' is available. Please install 'procps' or 'pstree'." >&2
+exit 1
